@@ -144,7 +144,7 @@ input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer;}
   <div class="nl" onclick="go('studios')">Studios</div>
   <div class="nsearch">
     <span class="si">&#9906;</span>
-    <input type="text" placeholder="Search..." id="nsi" oninput="doSearch(this.value)" onfocus="showSR()" onblur="setTimeout(hideSR,500)">
+    <input type="text" placeholder="Search..." id="nsi" oninput="doSearch(this.value)" onfocus="showSR()">
   </div>
 </nav>
 <div class="sr" id="sr"></div>
@@ -596,8 +596,12 @@ function srPick(type, label, id) {
   else if (type === 'collection') drill('set', label);
   else drill(type, label);
 }
-function showSR() { if (document.getElementById('sr').innerHTML) document.getElementById('sr').style.display=''; }
-function hideSR() { document.getElementById('sr').style.display='none'; }
+function showSR() { var c=document.getElementById('sr'); if(c.innerHTML) c.style.display=''; }
+function hideSR() { document.getElementById('sr').style.display='none'; document.getElementById('nsi').value=''; document.getElementById('sr').innerHTML=''; }
+document.addEventListener('click', function(e){
+  var sr=document.getElementById('sr'); var inp=document.getElementById('nsi');
+  if(e.target!==inp && !sr.contains(e.target)) hideSR();
+});
 
 window.addEventListener('DOMContentLoaded', function() {
   renderHome();
