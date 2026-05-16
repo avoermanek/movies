@@ -145,9 +145,9 @@ input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer;}
   <div class="nsearch">
     <span class="si">&#9906;</span>
     <input type="text" placeholder="Search..." id="nsi" oninput="doSearch(this.value)" onfocus="showSR()" onblur="setTimeout(hideSR,500)">
-    <div class="sr" id="sr" onmousedown="event.preventDefault()"></div>
   </div>
 </nav>
+<div class="sr" id="sr"></div>
 
 <div class="page on" id="page-home">
   <div class="metrics" id="hmet"></div>
