@@ -596,7 +596,7 @@ function srPick(type, label, id) {
   else if (type === 'collection') drill('set', label);
   else drill(type, label);
 }
-function showSR() { var c=document.getElementById('sr'); if(c.innerHTML) c.style.display=''; }
+function showSR() { var c=document.getElementById('sr'); if(c.innerHTML) c.style.display='block'; }
 function hideSR() { document.getElementById('sr').style.display='none'; document.getElementById('nsi').value=''; document.getElementById('sr').innerHTML=''; }
 document.addEventListener('click', function(e){
   var sr=document.getElementById('sr'); var inp=document.getElementById('nsi');
