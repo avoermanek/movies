@@ -584,7 +584,7 @@ function doSearch(q) {
   res = res.slice(0, 25);
   if (!res.length) { c.innerHTML = '<div style="padding:.75rem 1rem;color:var(--text3);font-size:.82rem">No results</div>'; c.style.display='block'; return; }
   c.innerHTML = res.map(function(r) {
-    return '<div class="sri" onclick="srPick(\'' + r.type + '\',' + JSON.stringify(r.label) + ',' + (r.id||0) + ')">'
+    return '<div class="sri" onclick="srPick(\'' + r.type + '\',\'' + r.label.replace(/'/g, "\\\\'") + '\',' + (r.id||0) + ')">'
       + '<span class="srt">' + r.type + '</span>' + e(r.label) + '<span class="srs">' + r.sub + '</span></div>';
   }).join('');
   c.style.display = 'block';
