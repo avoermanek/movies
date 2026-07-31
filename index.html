@@ -241,6 +241,7 @@ input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer;}
 </div>
 
 <script src="data.js"></script>
+<script src="data_actors.js"></script>
 <script>
 function e(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -330,7 +331,7 @@ function renderHome() {
   avgR = n ? avgR / n : 0;
   document.getElementById('hmet').innerHTML =
     met('Unique films', S.total, 'home') + met('Collections', S.top_sets.length, 'collections') +
-    met('Studios', S.top_studios.length + '+', 'studios') + met('Countries', '127', 'countries') +
+    met('Studios', S.top_studios.length + '+', 'studios') + met('Countries', Object.keys(IDX.country_idx).length, 'countries') +
     met('Directors', S.top_dirs.length + '+', 'directors') +
     '<div class="met" onclick="go(\'ratings\')"><div class="metl">Avg rating</div><div class="metv gold">' + avgR.toFixed(2) + '</div></div>';
   fillBars('hdirs', S.top_dirs.slice(0,15), function(d){ drill('director', d[0]); });
