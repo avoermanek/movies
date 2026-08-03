@@ -123,6 +123,15 @@ input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer;}
 .sc2{font-size:.7rem;color:var(--text3);}
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.fselrow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:.4rem;}
+.fsel{display:flex;flex-direction:column;gap:4px;}
+.fsel label{font-size:.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;}
+.fsel select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);
+  border-radius:8px;padding:.45rem .7rem;font-size:.8rem;outline:none;min-width:150px;cursor:pointer;}
+.fsel select:focus{border-color:var(--accent);}
+.fclear{font-size:.72rem;color:var(--text2);cursor:pointer;padding:.5rem .75rem;
+  border:1px solid var(--border);border-radius:8px;}
+.fclear:hover{color:#fff;border-color:var(--accent);}
 .c0{background:#534AB7}.c1{background:#1D9E75}.c2{background:#D85A30}
 .c3{background:#BA7517}.c4{background:#185FA5}.c5{background:#993556}
 .c6{background:#3B6D11}.c7{background:#993C1D}.c8{background:#0F6E56}
@@ -142,6 +151,7 @@ input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer;}
   <div class="nl" onclick="go('ratings')">Ratings</div>
   <div class="nl" onclick="go('collections')">Collections</div>
   <div class="nl" onclick="go('studios')">Studios</div>
+  <div class="nl" onclick="go('explore')">Explore</div>
   <div class="nsearch">
     <span class="si">&#9906;</span>
     <input type="text" placeholder="Search..." id="nsi" oninput="doSearch(this.value)" onfocus="showSR()">
@@ -223,6 +233,32 @@ input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer;}
   <div class="card"><div id="studios"></div></div>
 </div>
 
+<div class="page" id="page-explore">
+  <div class="pt">Explore</div>
+  <div class="ps">Combine filters — French Dramas, German War films of the 70s, whatever you're in the mood for</div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="fselrow">
+      <div class="fsel"><label>Genre</label><select id="xgenre" onchange="onExplore()"><option value="">Any genre</option></select></div>
+      <div class="fsel"><label>Country</label><select id="xcountry" onchange="onExplore()"><option value="">Any country</option></select></div>
+      <div class="fsel"><label>Decade</label><select id="xdecade" onchange="onExplore()"><option value="">Any decade</option></select></div>
+      <div class="fsel"><label>Min rating</label><select id="xrating" onchange="onExplore()">
+        <option value="">Any</option><option value="6">6+</option><option value="6.5">6.5+</option>
+        <option value="7">7+</option><option value="7.5">7.5+</option><option value="8">8+</option></select></div>
+      <div class="fclear" onclick="clearExplore()">Clear</div>
+    </div>
+  </div>
+  <div class="dh">
+    <div class="dc2" id="xcount"></div>
+    <div class="dr" id="xavg"></div>
+  </div>
+  <div class="stabs" id="xsort">
+    <div class="stab on" onclick="xsort('year',this)">Year</div>
+    <div class="stab" onclick="xsort('rating',this)">Rating</div>
+    <div class="stab" onclick="xsort('alpha',this)">A&ndash;Z</div>
+  </div>
+  <div class="card"><div class="fl" id="xfilms"></div></div>
+</div>
+
 <div class="page" id="page-detail">
   <div class="back" onclick="back()">&#8592; Back</div>
   <div class="dh">
@@ -251,7 +287,7 @@ function go(name, push) {
   var pg = document.getElementById('page-' + name);
   if (pg) pg.classList.add('on');
   document.querySelectorAll('.nl').forEach(function(l){ l.classList.remove('on'); });
-  var pages = ['home','directors','actors','countries','genres','years','ratings','collections','studios'];
+  var pages = ['home','directors','actors','countries','genres','years','ratings','collections','studios','explore'];
   var i = pages.indexOf(name);
   var nls = document.querySelectorAll('.nl');
   if (i >= 0 && nls[i]) nls[i].classList.add('on');
@@ -604,7 +640,72 @@ document.addEventListener('click', function(e){
   if(e.target!==inp && !sr.contains(e.target)) hideSR();
 });
 
+var _xf = [];
+function initExplore() {
+  var gs = document.getElementById('xgenre');
+  Object.keys(IDX.genre_idx).map(function(g){ return [g, IDX.genre_idx[g].length]; })
+    .sort(function(a,b){ return b[1]-a[1]; })
+    .forEach(function(g){ gs.add(new Option(g[0]+' ('+g[1]+')', g[0])); });
+  var cs = document.getElementById('xcountry');
+  Object.keys(IDX.country_idx).map(function(c){ return [c, IDX.country_idx[c].length]; })
+    .sort(function(a,b){ return b[1]-a[1]; })
+    .forEach(function(c){ cs.add(new Option(c[0]+' ('+c[1]+')', c[0])); });
+  var ds = document.getElementById('xdecade');
+  S.decade_counts.forEach(function(d){ ds.add(new Option(d[0]+'s ('+d[1]+')', d[0])); });
+  onExplore();
+}
+
+function onExplore() {
+  var g = document.getElementById('xgenre').value;
+  var c = document.getElementById('xcountry').value;
+  var dec = document.getElementById('xdecade').value;
+  var mr = parseFloat(document.getElementById('xrating').value) || 0;
+  var mids;
+  if (g && c) {
+    var cset = {};
+    (IDX.country_idx[c] || []).forEach(function(i){ cset[i] = 1; });
+    mids = (IDX.genre_idx[g] || []).filter(function(i){ return cset[i]; });
+  } else if (g) mids = (IDX.genre_idx[g] || []).slice();
+  else if (c) mids = (IDX.country_idx[c] || []).slice();
+  else mids = Object.keys(IDX.movies).map(function(k){ return parseInt(k); });
+
+  var films = [];
+  mids.forEach(function(mid) {
+    var m = IDX.movies[String(mid)];
+    if (!m) return;
+    if (dec && !(m.y >= parseInt(dec) && m.y <= parseInt(dec) + 9)) return;
+    if (mr && !(m.rating >= mr)) return;
+    films.push({id: parseInt(mid), m: m});
+  });
+  films.sort(function(a, b){ return (a.m.y || 0) - (b.m.y || 0) || a.m.t.localeCompare(b.m.t); });
+  _xf = films;
+  var lbl = [g, c, dec ? dec + 's' : '', mr ? mr + '+' : ''].filter(Boolean).join(' &middot; ');
+  document.getElementById('xcount').innerHTML = films.length + ' films' + (lbl ? ' &nbsp;&mdash;&nbsp; ' + lbl : '')
+    + (films.length > 400 ? ' (showing first 400)' : '');
+  var rated = films.filter(function(f){ return f.m.rating > 0; });
+  var avg = rated.length ? rated.reduce(function(s, f){ return s + f.m.rating; }, 0) / rated.length : 0;
+  document.getElementById('xavg').textContent = avg > 0 ? 'avg ' + avg.toFixed(2) : '';
+  document.querySelectorAll('#xsort .stab').forEach(function(t, i){ t.classList.toggle('on', i === 0); });
+  filmList('xfilms', films, null);
+}
+
+function xsort(by, el) {
+  document.querySelectorAll('#xsort .stab').forEach(function(t){ t.classList.remove('on'); });
+  el.classList.add('on');
+  var films = _xf.slice();
+  if (by === 'rating') films.sort(function(a, b){ return (b.m.rating || 0) - (a.m.rating || 0); });
+  else if (by === 'alpha') films.sort(function(a, b){ return a.m.t.localeCompare(b.m.t); });
+  else films.sort(function(a, b){ return (a.m.y || 0) - (b.m.y || 0) || a.m.t.localeCompare(b.m.t); });
+  filmList('xfilms', films, null);
+}
+
+function clearExplore() {
+  ['xgenre','xcountry','xdecade','xrating'].forEach(function(id){ document.getElementById(id).value = ''; });
+  onExplore();
+}
+
 window.addEventListener('DOMContentLoaded', function() {
+  initExplore();
   renderHome();
   renderDirBars('count');
   fillBars('actors', S.top_actors, function(d){ drill('actor', d[0]); });
