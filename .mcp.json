@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "sap-cap": {
+      "command": "npx",
+      "args": ["-y", "@cap-js/mcp-server"]
+    },
+    "sap-ui5": {
+      "command": "npx",
+      "args": ["-y", "@ui5/mcp-server"]
+    },
+    "sap-fiori": {
+      "command": "npx",
+      "args": ["-y", "@sap-ux/fiori-mcp-server"]
+    },
+    "sap-mdk": {
+      "command": "npx",
+      "args": ["-y", "@sap/mdk-mcp-server"]
+    }
+  }
+}
